@@ -11,26 +11,23 @@
 #define FRAMERATE 120.0
 #define TIME_MULTIPLIER 1.0
 
-#define FRICTION 0.1
-#define MAX_SPEED 2.5
-#define MAX_FORCE 25.0
+#define FRICTION 0.005
+#define MAX_SPEED 5.0
+#define MAX_FORCE 100.0
 
-#define FIXMULTIPLIER 0.5
-#define GRAVCONST 0.25
-#define WALL_GRAVCONST 2
-//#define CLICK_GRAVCONST 20.0
+#define FIXCONST 1
+#define GRAVCONST 0.02
+#define WALL_GRAVCONST 0.1
+#define CLICK_GRAVCONST 20.0
 
-#define PARTICLE_RADIUS 4.0
+#define PARTICLE_RADIUS 5.0
 
-#define VISION_RADIUS 1
-#define COLLISION_RADIUS 0.15
-#define WALL_COLLISION_RADIUS 10
+#define COLLISION_RADIUS 0.1
+#define VISION_RADIUS 1.0
 
 using namespace std;
 
-float entropy;
-
-bool random = true;
+bool random = false;
 
 float sign(float v)
 {
@@ -64,10 +61,10 @@ int particle_count;
 float UNIT_WIDTH = WIDTH / (float) UNIT;
 float UNIT_HEIGHT = HEIGHT / (float) UNIT;
 
-float multipliers[][4] = {{0.5, 3, 1, 1},
-						  {-2,-3,-3,-3},
-						  {-1,-2,-1, 1},
-						  { 1,-2,-1,-1}};
+float multipliers[][4] = {{ 1, 1, 1, 1},
+						  {-1,-1, 1, 1},
+						  { 1, 1, 1, 1},
+						  { 1, 1, 1, 1}};
 
 //float multipliers[][4] = {{ 3, 9,-7,10},
 //						  {10, 5, 9,-10},
@@ -182,9 +179,11 @@ void create_particles(int count, int type)
 {
 	for(int i = 0; i < count; i++)
 	{
+		float a = rand() % 360;
+		float r = (rand() % 201) / 400.0 + 1;
 		particles[particle_count].type = type;
-		particles[particle_count].position.x = rand() % (int) WIDTH / UNIT;
-		particles[particle_count].position.y = rand() % (int) HEIGHT / UNIT;
+		particles[particle_count].position.x = UNIT_WIDTH / 2.0 + r * cos(a * 3.14 / 180.0);
+		particles[particle_count].position.y = UNIT_HEIGHT / 2.0 + r * sin(a * 3.14 / 180.0);
 		particles[particle_count].velocity.x = 0;
 		particles[particle_count].velocity.y = 0;
 		particles[particle_count].force.x = 0;
@@ -204,7 +203,6 @@ void update()
 	float sqrDistance = 0;
 	float multiplier = 1;
 	float force = 0;
-	entropy = 0;
 
 	for(int i = 0; i < particle_count; i++)
 	{
@@ -213,39 +211,11 @@ void update()
 
 		for(int j = 0; j < particle_count; j++)
 		{
-			if(i == j)
-				continue;
-
 			dx = (particles[j].position.x - particles[i].position.x);
 			dy = (particles[j].position.y - particles[i].position.y);
 			distance = sqrt(dx * dx + dy * dy);
-
-			//float radio = ((PARTICLE_RADIUS - 2) / UNIT);
-			//if(distance < (2.0 * radio) && (particles[i].position.x != particles[j].position.x || particles[i].position.y != particles[j].position.y))
-			//{
-			//	vec2 punto_medio;
-			//	punto_medio.x = (particles[i].position.x + particles[j].position.x) / 2.0;
-			//	punto_medio.y = (particles[i].position.y + particles[j].position.y) / 2.0;
-			//	
-			//	vec2 normal;
-			//	normal.x = particles[j].position.x - particles[i].position.x;
-			//	normal.y = particles[j].position.y - particles[i].position.y;
-			//	
-			//	float normal_mag = sqrt(normal.x * normal.x + normal.y * normal.y);
-			//	normal.x /= normal_mag;
-			//	normal.y /= normal_mag;
-			//	
-			//	particles[j].position.x = punto_medio.x + normal.x * radio;
-			//	particles[j].position.y = punto_medio.y + normal.y * radio;
-			//	
-			//	particles[i].position.x = punto_medio.x - normal.x * radio;
-			//	particles[i].position.y = punto_medio.y - normal.y * radio;
-//
-			//	particles[i].velocity.x *= (1 - FRICTION * 5);
-			//	particles[i].velocity.y *= (1 - FRICTION * 5);
-			//}
 			
-			if(distance > 0 && distance < VISION_RADIUS && distance >= COLLISION_RADIUS)
+			if(i != j && distance > 0 && distance < VISION_RADIUS)
 			{
 				//float n = 2.0 * abs(distance - 0.5 * (VISION_RADIUS + 0));
 				//float d = VISION_RADIUS - 0;
@@ -253,16 +223,18 @@ void update()
 				//force = f * (1.0 - n / d);
 				//particles[i].force.x += dx / distance * force;
 				//particles[i].force.y += dy / distance * force;
-				multiplier = multipliers[particles[i].type][particles[j].type];
-				force = GRAVCONST / distance;
-				particles[i].force.x += dx / distance * force * multiplier;
-				particles[i].force.y += dy / distance * force * multiplier;
-			}
-			else if(distance > 0 && distance < COLLISION_RADIUS)
-			{
-				multiplier = -1;
-				force = FIXMULTIPLIER * GRAVCONST / distance;
-				//force = FIXCONST;
+
+				if(distance < COLLISION_RADIUS)
+				{
+					multiplier = -1;
+					force = FIXCONST * (COLLISION_RADIUS - distance) - FIXCONST;
+				}
+				else
+				{
+					multiplier = multipliers[particles[i].type][particles[j].type];
+					force = GRAVCONST / distance;
+				}
+
 				particles[i].force.x += dx / distance * force * multiplier;
 				particles[i].force.y += dy / distance * force * multiplier;
 			}
@@ -272,7 +244,7 @@ void update()
 		dy = particles[i].position.y;
 		distance = sqrt(dx * dx + dy * dy);
 		sqrDistance = distance * distance;
-		if(distance > 0 && distance < WALL_COLLISION_RADIUS)
+		if(distance > 0 && distance < VISION_RADIUS)
 		{
 			force = WALL_GRAVCONST / distance;
 			particles[i].force.x += dx / distance * force;
@@ -283,7 +255,7 @@ void update()
 		dy = 0;
 		distance = sqrt(dx * dx + dy * dy);
 		sqrDistance = distance * distance;
-		if(distance > 0 && distance < WALL_COLLISION_RADIUS)
+		if(distance > 0 && distance < VISION_RADIUS)
 		{
 			force = WALL_GRAVCONST / distance;
 			particles[i].force.x += dx / distance * force;
@@ -294,7 +266,7 @@ void update()
 		dy = particles[i].position.y - UNIT_HEIGHT;
 		distance = sqrt(dx * dx + dy * dy);
 		sqrDistance = distance * distance;
-		if(distance > 0 && distance < WALL_COLLISION_RADIUS)
+		if(distance > 0 && distance < VISION_RADIUS)
 		{
 			force = WALL_GRAVCONST / distance;
 			particles[i].force.x += dx / distance * force;
@@ -305,7 +277,7 @@ void update()
 		dy = 0;
 		distance = sqrt(dx * dx + dy * dy);
 		sqrDistance = distance * distance;
-		if(distance > 0 && distance < WALL_COLLISION_RADIUS)
+		if(distance > 0 && distance < VISION_RADIUS)
 		{
 			force = WALL_GRAVCONST / distance;
 			particles[i].force.x += dx / distance * force;
@@ -354,8 +326,6 @@ void update()
 			particles[i].velocity.x = particles[i].velocity.x / speed * MAX_SPEED;
 			particles[i].velocity.y = particles[i].velocity.y / speed * MAX_SPEED;
 		}
-
-		entropy += sqrt(particles[i].velocity.x * particles[i].velocity.x + particles[i].velocity.y * particles[i].velocity.y);
 	}
 
 	for(int i = 0; i < particle_count; i++)
@@ -473,7 +443,7 @@ void run()
 				{
 					for (int j = 0; j < 4; ++j)
 					{
-						multipliers[i][j] = (rand() % 101) / 50.0 * (rand() % 2 == 0 ? 1 : -1);
+						multipliers[i][j] = (rand() % 7 - 3) * (rand() % 2 == 0 ? -1 : 1);
 						//cout << multipliers[i][j] << ", ";
 					}
 					//cout << endl;
@@ -486,7 +456,7 @@ void run()
 		{
 			time_to_update_fps = 0.5;
 
-			string fps_string = to_string(entropy);
+			string fps_string = to_string((int) (1 / delta_time));
 			char fps_chars[fps_string.length() + 1];
 			strcpy(fps_chars, fps_string.c_str());
 
