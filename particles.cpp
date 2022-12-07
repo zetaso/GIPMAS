@@ -30,7 +30,7 @@ using namespace std;
 
 float entropy;
 
-bool random = false;
+bool random = true;
 
 float sign(float v)
 {
@@ -66,10 +66,10 @@ int *particle_count_by_type;
 float UNIT_WIDTH = WIDTH / (float) UNIT;
 float UNIT_HEIGHT = HEIGHT / (float) UNIT;
 
-float multipliers[][4] = {{0.46, 1.96, 1.14, 1.62},
-							{-1.36, -0.96, 0.2, 1.6},
-							{1.78, 1.44, -1.36, 0.76},
-							{0.18, -1.04, 0.08, -1.38}};
+float multipliers[][4] = {{0.46, 1.96, 1.14, 1.62,},
+							{-1.36, -0.96, 0.2, 1.6,},
+							{1.78, 1.44, -1.36, 0.76,},
+							{0.18, -1.04, 0.08, -1.38,}};
 
 //float multipliers[][4] = {{ 3, 9,-7,10},
 //						  {10, 5, 9,-10},
@@ -491,7 +491,8 @@ void run()
 					for (int j = 0; j < 4; ++j)
 					{
 						multipliers[i][j] = (rand() % 101) / 50.0 * (rand() % 2 == 0 ? 1 : -1);
-						if(j != 3) cout << multipliers[i][j] << ", ";
+						cout << multipliers[i][j];
+						if(j != 3) cout << ", ";
 					}
 					cout << endl;
 				}
@@ -552,15 +553,19 @@ int main(int argc, char *argv[])
 	particle_count = 0;
 
 	if(random)
+	{
 		for (int i = 0; i < 4; ++i)
 		{
 			for (int j = 0; j < 4; ++j)
 			{
 				multipliers[i][j] = (rand() % 101) / 50.0 * (rand() % 2 == 0 ? 1 : -1);
-				if(j != 3) cout << multipliers[i][j] << ", ";
+				cout << multipliers[i][j];
+				if(j != 3) cout << ", ";
 			}
 			cout << endl;
 		}
+		cout << endl;
+	}
 
 	for(int i = 1; i < argc; i++)
 		particles_size += atoi(argv[i]);
