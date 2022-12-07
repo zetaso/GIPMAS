@@ -60,6 +60,8 @@ SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED
 particle * particles;
 int particles_size;
 int particle_count;
+int type_count;
+int *particle_count_by_type;
 
 float UNIT_WIDTH = WIDTH / (float) UNIT;
 float UNIT_HEIGHT = HEIGHT / (float) UNIT;
@@ -176,6 +178,19 @@ void draw()
 	}
 
 	SDL_RenderPresent(renderer);
+}
+
+void reset_particles()
+{
+	for(int i = 0; i < particle_count; i++)
+	{
+		particles[i].position.x = rand() % (int) WIDTH / UNIT;
+		particles[i].position.y = rand() % (int) HEIGHT / UNIT;
+		particles[i].velocity.x = 0;
+		particles[i].velocity.y = 0;
+		particles[i].force.x = 0;
+		particles[i].force.y = 0;
+	}
 }
 
 void create_particles(int count, int type)
@@ -469,15 +484,18 @@ void run()
 			if(time_to_new_matrix <= 0)
 			{
 				time_to_new_matrix = new_matrix_interval;
+				reset_particles();
+
 				for (int i = 0; i < 4; ++i)
 				{
 					for (int j = 0; j < 4; ++j)
 					{
 						multipliers[i][j] = (rand() % 101) / 50.0 * (rand() % 2 == 0 ? 1 : -1);
-						//cout << multipliers[i][j] << ", ";
+						cout << multipliers[i][j] << ", ";
 					}
-					//cout << endl;
+					cout << endl;
 				}
+				cout << endl;
 			}
 		}
 
@@ -538,7 +556,7 @@ int main(int argc, char *argv[])
 		{
 			for (int j = 0; j < 4; ++j)
 			{
-				multipliers[i][j] = (rand() % 3 + 1) * (rand() % 2 == 0 ? 1 : -1);
+				multipliers[i][j] = (rand() % 101) / 50.0 * (rand() % 2 == 0 ? 1 : -1);
 				cout << multipliers[i][j] << ", ";
 			}
 			cout << endl;
@@ -549,8 +567,13 @@ int main(int argc, char *argv[])
 
 	particles = (particle *) malloc(particles_size * sizeof(particle));
 
-	for(int i = 1; i < argc; i++)
-		create_particles(atoi(argv[i]), i - 1);
+	particle_count_by_type = (int*) malloc((argc - 1) * sizeof(int));
+	type_count = argc - 1;
+	for(int i = 0; i < type_count; i++)
+	{
+		particle_count_by_type[i] = atoi(argv[i + 1]);
+		create_particles(particle_count_by_type[i], i);
+	}
 
 	run();
 
