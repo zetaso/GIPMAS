@@ -66,10 +66,12 @@ int *particle_count_by_type;
 float UNIT_WIDTH = WIDTH / (float) UNIT;
 float UNIT_HEIGHT = HEIGHT / (float) UNIT;
 
-float multipliers[][4] = {{0.46, 1.96, 1.14, 1.62,},
-							{-1.36, -0.96, 0.2, 1.6,},
-							{1.78, 1.44, -1.36, 0.76,},
-							{0.18, -1.04, 0.08, -1.38,}};
+float multipliers[][4] =
+
+{{0.54, -0.6, -0.94, -0.4},
+{-1.6, 0.04, 0.94, 1.02},
+{-0.68, -0.14, -1.68, 1.98},
+{0.8, -0.48, -1.02, -0.04}};
 
 //float multipliers[][4] = {{ 3, 9,-7,10},
 //						  {10, 5, 9,-10},
@@ -88,8 +90,12 @@ clock_t last_time;
 clock_t actual_time;
 float delta_time;
 
+int print_number = 1;
 float time_to_new_matrix = 0.0;
-float new_matrix_interval = 10.0;
+float new_matrix_interval = 22;
+
+float time_to_print_entropy = 1.0;
+float entropy_print_interval = 1.0;
 
 float time_to_update_fps;
 
@@ -478,25 +484,42 @@ void run()
 		delta_time = float(actual_time - last_time) / (float) CLOCKS_PER_SEC;
 		last_time = actual_time;
 
+		time_to_print_entropy -= delta_time;
+		if(time_to_print_entropy <= 0)
+		{
+			time_to_print_entropy = entropy_print_interval;
+			cout << print_number++ << " " << entropy << endl;
+		}
+
 		if(random)
 		{
 			time_to_new_matrix -= delta_time;
 			if(time_to_new_matrix <= 0)
 			{
+				print_number = 1;
 				time_to_new_matrix = new_matrix_interval;
 				reset_particles();
 
+				cout << "{";
 				for (int i = 0; i < 4; ++i)
 				{
+					if(i == 0)
+						cout << "{";
 					for (int j = 0; j < 4; ++j)
 					{
 						multipliers[i][j] = (rand() % 101) / 50.0 * (rand() % 2 == 0 ? 1 : -1);
 						cout << multipliers[i][j];
-						if(j != 3) cout << ", ";
+						if(j != 3)
+							cout << ", ";
+						else if(i != 3)
+							cout << "},";
+						else
+							cout << "}";
 					}
-					cout << endl;
+					if(i != 3)
+						cout << endl;
 				}
-				cout << endl;
+				cout << "};" << endl;
 			}
 		}
 
@@ -553,19 +576,29 @@ int main(int argc, char *argv[])
 	particle_count = 0;
 
 	if(random)
-	{
 		for (int i = 0; i < 4; ++i)
-		{
 			for (int j = 0; j < 4; ++j)
-			{
 				multipliers[i][j] = (rand() % 101) / 50.0 * (rand() % 2 == 0 ? 1 : -1);
-				cout << multipliers[i][j];
-				if(j != 3) cout << ", ";
-			}
-			cout << endl;
+
+	cout << "{";
+	for (int i = 0; i < 4; ++i)
+	{
+		if(i == 0)
+			cout << "{";
+		for (int j = 0; j < 4; ++j)
+		{
+			cout << multipliers[i][j];
+			if(j != 3)
+				cout << ", ";
+			else if(i != 3)
+				cout << "},";
+			else
+				cout << "}";
 		}
-		cout << endl;
+		if(i != 3)
+			cout << endl;
 	}
+	cout << "};" << endl;
 
 	for(int i = 1; i < argc; i++)
 		particles_size += atoi(argv[i]);
