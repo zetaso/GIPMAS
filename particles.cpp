@@ -30,7 +30,7 @@ using namespace std;
 
 float entropy;
 
-bool random = true;
+bool random = false;
 
 float sign(float v)
 {
@@ -68,21 +68,10 @@ float UNIT_HEIGHT = HEIGHT / (float) UNIT;
 
 float multipliers[][4] =
 
-{{0.54, -0.6, -0.94, -0.4},
-{-1.6, 0.04, 0.94, 1.02},
-{-0.68, -0.14, -1.68, 1.98},
-{0.8, -0.48, -1.02, -0.04}};
-
-//float multipliers[][4] = {{ 3, 9,-7,10},
-//						  {10, 5, 9,-10},
-//						  { 4, 3,-3,-2},
-//						  { 5,-7,-1, 3}};
-
-//float multipliers[][4] = {{ 1,-1, 1, 1},	//GRUMOS INESTABLES (distance)
-//						  { 1, 1,-1,-1},
-//						  {-1,-1,-1,-1},
-//						  { 1, 1,-1, 0}};
-
+{{-0.94, 0.38, -1.38, 0.26},
+{-1.34, 0.72, 1.68, 0.24},
+{0.86, -1.18, -1.8, -0.3},
+{1.46, 0.18, -1.92, 1.02}};
 char colors[4][3];
 
 //	time variables
@@ -102,7 +91,8 @@ float time_to_update_fps;
 //	input variables
 vec2 mouse_pos;
 bool filtering = false;
-bool input_filter[] = {false, false, false, false};
+int last_preset = 0;
+int preset_typed = 0;
 bool input_up = false;
 bool input_down = false;
 bool input_left = false;
@@ -155,8 +145,6 @@ int SDL_RenderFillCircle(SDL_Renderer * renderer, int x, int y, int radius)
 
 void draw()
 {
-	filtering = input_filter[0] || input_filter[1] || input_filter[2] || input_filter[3];
-
 	SDL_Rect rect;
 	rect.x = 0;
 	rect.y = 0;
@@ -167,10 +155,7 @@ void draw()
 
 	for(int i = 0; i < particle_count; i++)
 	{
-		if(filtering && !input_filter[particles[i].type])
-			SDL_SetRenderDrawColor(renderer, 10, 10, 10, SDL_ALPHA_OPAQUE);
-		else
-			SDL_SetRenderDrawColor(renderer, particles[i].color[0], particles[i].color[1], particles[i].color[2], SDL_ALPHA_OPAQUE);
+		SDL_SetRenderDrawColor(renderer, particles[i].color[0], particles[i].color[1], particles[i].color[2], SDL_ALPHA_OPAQUE);
 		rect.x = particles[i].position.x  * UNIT - 8;
 		rect.y = particles[i].position.y * UNIT - 8;
 		rect.w = 16;
@@ -411,6 +396,194 @@ void update()
 	}
 }
 
+void set_preset(int preset)
+{
+	reset_particles();
+	switch(preset)
+	{
+	case 0:
+		multipliers[0][0] = -0.94;
+		multipliers[0][1] = 0.38;
+		multipliers[0][2] = -1.38;
+		multipliers[0][3] = 0.26;
+		multipliers[1][0] = -1.34;
+		multipliers[1][1] = 0.72;
+		multipliers[1][2] = 1.68;
+		multipliers[1][3] = 0.24;
+		multipliers[2][0] = 0.86;
+		multipliers[2][1] = -1.18;
+		multipliers[2][2] = -1.8;
+		multipliers[2][3] = -0.3;
+		multipliers[3][0] = 1.46;
+		multipliers[3][1] = 0.18;
+		multipliers[3][2] = -1.92;
+		multipliers[3][3] = 1.02;
+		break;
+	case 1:
+		multipliers[0][0] = -1.4;
+		multipliers[0][1] = -0.98;
+		multipliers[0][2] = -1.34;
+		multipliers[0][3] = 1.56;
+		multipliers[1][0] = -0.5;
+		multipliers[1][1] = 1.36;
+		multipliers[1][2] = 0.72;
+		multipliers[1][3] = 1.12;
+		multipliers[2][0] = 0.44;
+		multipliers[2][1] = 0;
+		multipliers[2][2] = -1.04;
+		multipliers[2][3] = -1.92;
+		multipliers[3][0] = -1.36;
+		multipliers[3][1] = -0.98;
+		multipliers[3][2] = 1.4;
+		multipliers[3][3] = -1.1;
+		break;
+	case 2:
+		multipliers[0][0] = -1.48;
+		multipliers[0][1] = 1.7;
+		multipliers[0][2] = 0;
+		multipliers[0][3] = 0.34;
+		multipliers[1][0] = -0.9;
+		multipliers[1][1] = 0.6;
+		multipliers[1][2] = -1.9;
+		multipliers[1][3] = -0.94;
+		multipliers[2][0] = 0.26;
+		multipliers[2][1] = -1.28;
+		multipliers[2][2] = -0.36;
+		multipliers[2][3] = -1.12;
+		multipliers[3][0] = -1.38;
+		multipliers[3][1] = -1.88;
+		multipliers[3][2] = 1.1;
+		multipliers[3][3] = -0.58;
+		break;
+	case 3:
+		multipliers[0][0] = 1.08;
+		multipliers[0][1] = 0.98;
+		multipliers[0][2] = 0.34;
+		multipliers[0][3] = 1.4;
+		multipliers[1][0] = -0.36;
+		multipliers[1][1] = 0.24;
+		multipliers[1][2] = 1.86;
+		multipliers[1][3] = 1.8;
+		multipliers[2][0] = 0.9;
+		multipliers[2][1] = 0.84;
+		multipliers[2][2] = 1.98;
+		multipliers[2][3] = -0.22;
+		multipliers[3][0] = -0.94;
+		multipliers[3][1] = 1.16;
+		multipliers[3][2] = 0.4;
+		multipliers[3][3] = 0.58;
+		break;
+	case 4:
+		multipliers[0][0] = -0.38;
+		multipliers[0][1] = 0.26;
+		multipliers[0][2] = -0.64;
+		multipliers[0][3] = 1;
+		multipliers[1][0] = 0.38;
+		multipliers[1][1] = -2;
+		multipliers[1][2] = 0.7;
+		multipliers[1][3] = -0.5;
+		multipliers[2][0] = 0.46;
+		multipliers[2][1] = -1.84;
+		multipliers[2][2] = 1;
+		multipliers[2][3] = 0.66;
+		multipliers[3][0] = 0.88;
+		multipliers[3][1] = 0.64;
+		multipliers[3][2] = -1.8;
+		multipliers[3][3] = 1.44;
+		break;
+	case 5:
+		multipliers[0][0] = 1.22;
+		multipliers[0][1] = -0.18;
+		multipliers[0][2] = -0.22;
+		multipliers[0][3] = -0.82;
+		multipliers[1][0] = -0.16;
+		multipliers[1][1] = 1.66;
+		multipliers[1][2] = 0.46;
+		multipliers[1][3] = -0.6;
+		multipliers[2][0] = -0.86;
+		multipliers[2][1] = -0.6;
+		multipliers[2][2] = -0.34;
+		multipliers[2][3] = 1.02;
+		multipliers[3][0] = -0.98;
+		multipliers[3][1] = -0.62;
+		multipliers[3][2] = 1.56;
+		multipliers[3][3] = -1.68;
+		break;
+	case 6:
+		multipliers[0][0] = -0.56;
+		multipliers[0][1] = -2;
+		multipliers[0][2] = -0.32;
+		multipliers[0][3] = 0.14;
+		multipliers[1][0] = 1.12;
+		multipliers[1][1] = 1.82;
+		multipliers[1][2] = -0.76;
+		multipliers[1][3] = -0.4;
+		multipliers[2][0] = 1.36;
+		multipliers[2][1] = 1.9;
+		multipliers[2][2] = -0.44;
+		multipliers[2][3] = -0.3;
+		multipliers[3][0] = -0.98;
+		multipliers[3][1] = -1.12;
+		multipliers[3][2] = -0.24;
+		multipliers[3][3] = 1.98;
+		break;
+	case 7:
+		multipliers[0][0] = -0.82;
+		multipliers[0][1] = -0.14;
+		multipliers[0][2] = -1.38;
+		multipliers[0][3] = -1.18;
+		multipliers[1][0] = 0.14;
+		multipliers[1][1] = 0.04;
+		multipliers[1][2] = 0.5;
+		multipliers[1][3] = -0.24;
+		multipliers[2][0] = 1.06;
+		multipliers[2][1] = 0.2;
+		multipliers[2][2] = 0.26;
+		multipliers[2][3] = 1.86;
+		multipliers[3][0] = -1.3;
+		multipliers[3][1] = -1.76;
+		multipliers[3][2] = -0.22;
+		multipliers[3][3] = 0.3;
+		break;
+	case 8:
+		multipliers[0][0] = -0.6;
+		multipliers[0][1] = 0.12;
+		multipliers[0][2] = -0.84;
+		multipliers[0][3] = 0.36;
+		multipliers[1][0] = 1.44;
+		multipliers[1][1] = -1.66;
+		multipliers[1][2] = -1.62;
+		multipliers[1][3] = 0.62;
+		multipliers[2][0] = 1.3;
+		multipliers[2][1] = -1.2;
+		multipliers[2][2] = -0.46;
+		multipliers[2][3] = -0.8;
+		multipliers[3][0] = 0.32;
+		multipliers[3][1] = -1.06;
+		multipliers[3][2] = 1;
+		multipliers[3][3] = -0.88;
+		break;
+	case 9:
+		multipliers[0][0] = -0.9;
+		multipliers[0][1] = 1.64;
+		multipliers[0][2] = 0.2;
+		multipliers[0][3] = -1.02;
+		multipliers[1][0] = -1.44;
+		multipliers[1][1] = 1.78;
+		multipliers[1][2] = -1.68;
+		multipliers[1][3] = 1;
+		multipliers[2][0] = 0.26;
+		multipliers[2][1] = 1.5;
+		multipliers[2][2] = -0.24;
+		multipliers[2][3] = 1.64;
+		multipliers[3][0] = -1.52;
+		multipliers[3][1] = -1.56;
+		multipliers[3][2] = -0.16;
+		multipliers[3][3] = 0.04;
+		break;
+	}	
+}
+
 void catch_input(){
 	SDL_Event event;
 	while(SDL_PollEvent(&event)){
@@ -423,20 +596,28 @@ void catch_input(){
 			else if(key_code == SDL_SCANCODE_DOWN || key_code == SDL_SCANCODE_S) input_down = true;
 			else if(key_code == SDL_SCANCODE_LEFT || key_code == SDL_SCANCODE_A) input_left = true;
 			else if(key_code == SDL_SCANCODE_RIGHT || key_code == SDL_SCANCODE_D) input_right = true;
-			else if(key_code == SDL_SCANCODE_1) input_filter[0] = true;
-			else if(key_code == SDL_SCANCODE_2) input_filter[1] = true;
-			else if(key_code == SDL_SCANCODE_3) input_filter[2] = true;
-			else if(key_code == SDL_SCANCODE_4) input_filter[3] = true;
+			else if(key_code == SDL_SCANCODE_1) preset_typed = 0;
+			else if(key_code == SDL_SCANCODE_2) preset_typed = 1;
+			else if(key_code == SDL_SCANCODE_3) preset_typed = 2;
+			else if(key_code == SDL_SCANCODE_4) preset_typed = 3;
+			else if(key_code == SDL_SCANCODE_5) preset_typed = 4;
+			else if(key_code == SDL_SCANCODE_6) preset_typed = 5;
+			else if(key_code == SDL_SCANCODE_7) preset_typed = 6;
+			else if(key_code == SDL_SCANCODE_8) preset_typed = 7;
+			else if(key_code == SDL_SCANCODE_9) preset_typed = 8;
+			else if(key_code == SDL_SCANCODE_0) preset_typed = 9;
+
+			if(last_preset != preset_typed)
+			{
+				set_preset(preset_typed);
+				last_preset = preset_typed;
+			}
 		}
 		else if(event.type == SDL_KEYUP){
 			if(key_code == SDL_SCANCODE_UP || key_code == SDL_SCANCODE_W) input_up = false;
 			else if(key_code == SDL_SCANCODE_DOWN || key_code == SDL_SCANCODE_S) input_down = false;
 			else if(key_code == SDL_SCANCODE_LEFT || key_code == SDL_SCANCODE_A) input_left = false;
 			else if(key_code == SDL_SCANCODE_RIGHT || key_code == SDL_SCANCODE_D) input_right = false;
-			else if(key_code == SDL_SCANCODE_1) input_filter[0] = false;
-			else if(key_code == SDL_SCANCODE_2) input_filter[1] = false;
-			else if(key_code == SDL_SCANCODE_3) input_filter[2] = false;
-			else if(key_code == SDL_SCANCODE_4) input_filter[3] = false;
 		}
 		else if(event.type == SDL_MOUSEMOTION)
 		{
@@ -484,12 +665,12 @@ void run()
 		delta_time = float(actual_time - last_time) / (float) CLOCKS_PER_SEC;
 		last_time = actual_time;
 
-		time_to_print_entropy -= delta_time;
-		if(time_to_print_entropy <= 0)
-		{
-			time_to_print_entropy = entropy_print_interval;
-			cout << print_number++ << " " << entropy << endl;
-		}
+		//time_to_print_entropy -= delta_time;
+		//if(time_to_print_entropy <= 0)
+		//{
+		//	time_to_print_entropy = entropy_print_interval;
+		//	cout << print_number++ << " " << entropy << endl;
+		//}
 
 		if(random)
 		{
@@ -503,8 +684,7 @@ void run()
 				cout << "{";
 				for (int i = 0; i < 4; ++i)
 				{
-					if(i == 0)
-						cout << "{";
+					cout << "{";
 					for (int j = 0; j < 4; ++j)
 					{
 						multipliers[i][j] = (rand() % 101) / 50.0 * (rand() % 2 == 0 ? 1 : -1);
@@ -583,8 +763,7 @@ int main(int argc, char *argv[])
 	cout << "{";
 	for (int i = 0; i < 4; ++i)
 	{
-		if(i == 0)
-			cout << "{";
+		cout << "{";
 		for (int j = 0; j < 4; ++j)
 		{
 			cout << multipliers[i][j];
@@ -598,7 +777,12 @@ int main(int argc, char *argv[])
 		if(i != 3)
 			cout << endl;
 	}
-	cout << "};" << endl;
+	cout << "};" << endl << endl;
+
+	//for (int i = 0; i < 4; ++i)
+	//	for (int j = 0; j < 4; ++j)
+	//		cout << "multipliers[" << i << "][" << j << "] = " << multipliers[i][j] << ";" << endl;
+	//cout << endl;
 
 	for(int i = 1; i < argc; i++)
 		particles_size += atoi(argv[i]);
